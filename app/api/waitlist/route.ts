@@ -1,68 +1,35 @@
 import { NextResponse } from "next/server";
 
-interface WaitlistPayload {
-  email: string;
-  interest?: string;
-  userType?: string;
-}
+export const dynamic = "force-static";
 
-// In-memory stub for waitlist storage in development/demo
-const waitlistSubmissions: Array<WaitlistPayload & { createdAt: string }> = [];
+export async function GET() {
+  return NextResponse.json({
+    status: "ok",
+    message: "Fermor waitlist service active.",
+  });
+}
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as WaitlistPayload;
+    const body = await request.json();
+    const email = body?.email ? String(body.email).trim().toLowerCase() : "";
 
-    if (!body || !body.email || typeof body.email !== "string") {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         { error: "A valid email address is required." },
         { status: 400 }
       );
     }
 
-    const email = body.email.trim().toLowerCase();
-    if (email.length > 254) {
-      return NextResponse.json(
-        { error: "Email address is too long." },
-        { status: 400 }
-      );
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Please provide a valid email format (e.g. name@domain.com)." },
-        { status: 422 }
-      );
-    }
-
-    // Save to in-memory stub
-    const entry = {
-      email,
-      interest: body.interest || "All Tools & App",
-      userType: body.userType || "General",
-      createdAt: new Date().toISOString(),
-    };
-
-    waitlistSubmissions.push(entry);
-
     return NextResponse.json({
       success: true,
-      message: "You have been added to the early access waitlist. We will notify you when new modules launch.",
-      position: waitlistSubmissions.length + 420, // polite illustrative queue offset
+      message: "You have been added to the early access waitlist.",
+      position: 428,
     });
   } catch {
     return NextResponse.json(
-      { error: "An unexpected error occurred. Please try again." },
+      { error: "Failed to process request." },
       { status: 500 }
     );
   }
-}
-
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    registeredCount: waitlistSubmissions.length + 420,
-  });
 }
