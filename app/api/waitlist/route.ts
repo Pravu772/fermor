@@ -21,6 +21,13 @@ export async function POST(request: Request) {
     }
 
     const email = body.email.trim().toLowerCase();
+    if (email.length > 254) {
+      return NextResponse.json(
+        { error: "Email address is too long." },
+        { status: 400 }
+      );
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
